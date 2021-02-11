@@ -32,7 +32,7 @@ class PgSubscriptionStream extends Transform {
 		})
 	}
 
-	sendFeedback(force) {
+	sendFeedback(force, cb) {
 		if (this.flush_written_lsn === invalid_lsn) return
 
 		const current_time = now()
@@ -46,7 +46,9 @@ class PgSubscriptionStream extends Transform {
 			response.setBigUint64(1 + 8 + 8, invalid_lsn)
 			response.setBigUint64(1 + 8 + 8 + 8, current_time)
 			response.setUint8(1 + 8 + 8 + 8 + 8, 0)
-			this.copyBoth.write(Buffer.from(response.buffer))
+			this.copyBoth.write(Buffer.from(response.buffer), cb || () => {})
+		} else {
+			cb && cb();
 		}
 	}
 
