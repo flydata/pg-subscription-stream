@@ -63,7 +63,7 @@ const createParsers = ({typeParsers, includeTransactionLsn, includeXids, include
 				const [v, counter] = extractTuples.call(_, 1 + 4 + 1)
 				const row = Object.fromEntries(Object.entries(columns)
 					.filter(([k, {flags}]) => identifier !== 0x4b || flags === 1)
-					.map(([k, {typeParser}], i) => [k, parseColumn.call(typeParser, v[i])]))
+					.map(([k, {typeParser, index}]) => [k, parseColumn.call(typeParser, v[index])]))
 				return [{kind: 'DELETE', schema, table, [tuples[identifier]]: row}, counter]
 			} else
 				throw new Error(`Unknown Update Message Format: ${identifier.toString(16)}`)
@@ -91,13 +91,13 @@ const createParsers = ({typeParsers, includeTransactionLsn, includeXids, include
 			const table = extractString.call(_, 1 + 4 + schema.length + 1)
 			const setting = _.readUInt8(1 + 4 + schema.length + 1 + table.length + 1)
 			const cols = _.readUInt16BE(1 + 4 + schema.length + 1 + table.length + 1 + 1)
-			const [columns, counter] = Array.from(new Array(cols)).reduce(([r, counter]) => {
+			const [columns, counter] = Array.from(new Array(cols)).reduce(([r, counter], val, index) => {
 				const flags = _.readUInt8(counter)
 				const name = extractString.call(_, counter + 1)
 				const id = _.readUInt32BE(counter + 1 + name.length + 1)
 				const type_modifier = _.readUInt32BE(counter + 1 + name.length + 1 + 4)
 				const typeParser = typeParsers ? typeParsers.getTypeParser(id) : _ => _
-				return [{...r, [name]: {flags, id, type_modifier, typeParser}}, counter + 1 + name.length + 1 + 4 + 4]
+				return [{...r, [name]: {flags, id, type_modifier, typeParser, index}}, counter + 1 + name.length + 1 + 4 + 4]
 			}, [{}, 1 + 4 + schema.length + 1 + table.length + 1 + 1 + 2])
 			const relation = {kind: 'RELATION', id, schema, table, setting, columns}
 			relations.set(id, relation)
