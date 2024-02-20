@@ -1,6 +1,6 @@
 {
   "name": "pg-subscription-stream",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "PG Subscription Stream - Subscribing to a PG logical replication slot and receive database changes",
   "main": "index.js",
   "scripts": {
@@ -25,6 +25,6 @@
     "url": "git://github.com/wwindcloud/pg-subscription-stream.git"
   },
   "dependencies": {
-    "pg-copy-streams": "^5.1.0"
+    "pg-copy-streams": "^6.0.6"
   }
 }
